@@ -1,0 +1,7 @@
+use_wandb: true
+project: ddpm-study
+entity: null
+mode: online
+run_name_template: "${now:%Y%m%d_%H%M%S}_ddpm_${sampler.name}_seed${seed}"
+log_every: 100
+log_images: true

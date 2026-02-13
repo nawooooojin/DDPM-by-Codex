@@ -1,0 +1,4 @@
+name: ddpm
+num_sampling_steps: 1000
+eta: 0.0
+trajectory_frames: 10

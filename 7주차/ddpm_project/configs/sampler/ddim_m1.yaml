@@ -1,0 +1,4 @@
+name: ddim
+num_sampling_steps: 25
+eta: 0.0
+trajectory_frames: 8

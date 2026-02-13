@@ -1,0 +1,21 @@
+output_base: outputs
+device: auto
+
+total_steps: 250000
+fast_dev_run: false
+overfit_one_batch: false
+
+grad_clip_norm: 1.0
+
+ema: true
+ema_decay: 0.9999
+
+save_every: 10000
+sample_every: 5000
+log_every: 100
+
+num_eval_samples: 64
+eval_seed: 123
+checkpoint_path: null
+
+resume_from: null

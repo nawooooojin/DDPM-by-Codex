@@ -1,0 +1,9 @@
+_target_: src.models.unet.UNet
+in_channels: 3
+out_channels: 3
+base_channels: 64
+channel_mult: [1, 2, 2]
+num_res_blocks: 1
+attn_resolutions: [16]
+dropout: 0.1
+image_size: 32

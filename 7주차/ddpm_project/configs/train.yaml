@@ -1,0 +1,18 @@
+defaults:
+  - model: unet_base
+  - data: cifar10
+  - diffusion: ddpm
+  - sampler: ddpm
+  - optimizer: adam
+  - runtime: default
+  - logging: wandb
+  - callbacks: default
+  - _self_
+
+seed: 42
+
+hydra:
+  run:
+    dir: ${runtime.output_base}/hydra/${now:%Y-%m-%d_%H-%M-%S}
+  job:
+    chdir: true
