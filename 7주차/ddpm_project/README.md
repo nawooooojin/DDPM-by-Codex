@@ -29,7 +29,16 @@ DDPM quick checks:
 ```bash
 python scripts/train.py runtime.fast_dev_run=true logging.use_wandb=false
 python scripts/train.py runtime.overfit_one_batch=true runtime.total_steps=1000 logging.use_wandb=false
+python scripts/train.py experiment=ddpm_test
 ```
+
+이미 CIFAR-10을 받아둔 경우:
+
+```bash
+python scripts/train.py experiment=ddpm_test data.download=false
+```
+
+`ddpm_test`는 로컬 환경에서 DDPM 학습/시각화 산출물을 빠르게 점검하기 위한 실험 설정입니다.
 
 ## 3) Toy Reproducibility Pipeline (new)
 
@@ -85,10 +94,12 @@ python -m pytest -q
 - Working agreements: `AGENTS.md`
 - Memory docs: `docs/PROMPT.md`, `docs/PLAN.md`, `docs/IMPLEMENT.md`, `docs/STATUS.md`
 - HITL schemas/state machine: `docs/hitl/*`
+- HITL context hub: `docs/hitl/ACTIVE.md`
+- HITL command interface: `docs/hitl/INTERFACE.md`
 - Detailed HITL operation guide: `README_HITL_AUTOMATION.md`
 - HITL report channels: `reports/hitl/inbox/`, `reports/hitl/daily.md`, `reports/hitl/weekly.md`
 - Repo skills: `.agents/skills/*`
-- Automation prompt set: `AUTOMATIONS.md`
+- Automation prompt set (compact 3 + legacy paused 9): `AUTOMATIONS.md`
 - Safety config: `.codex/config.toml`, `codex/rules/default.rules`
 
 ## 7) Output Locations

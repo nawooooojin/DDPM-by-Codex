@@ -1,7 +1,7 @@
-"""Validate HITL automation workflow with real checks and toy edge/corner cases.
+"""Validate HITL workflow contracts, compact automation policy, and edge cases.
 
-Run this script from repository root:
-    conda run -n py311 python scripts/hitl_validate_workflow.py
+Run from project root:
+    conda run --no-capture-output -n py311 python scripts/hitl_validate_workflow.py
 """
 
 from __future__ import annotations
@@ -15,7 +15,7 @@ import sys
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Sequence, Tuple
+from typing import Dict, Sequence, Tuple
 
 try:
     import tomllib
@@ -49,8 +49,13 @@ ALLOWED_TRANSITIONS: Dict[str, set[str]] = {
     "REJECTED": set(),
 }
 
+ALLOWED_LANES: set[str] = {"wip", "record"}
+
 REQUIRED_EXPERIMENT_KEYS: set[str] = {
     "exp_id",
+    "lane",
+    "promotion_source",
+    "promotion_reason",
     "hypothesis",
     "model_changes",
     "config_overrides",
@@ -82,9 +87,18 @@ REQUIRED_STATE_COLUMNS: Sequence[str] = (
     "owner",
     "updated_at",
     "approved_by",
+    "lane",
+    "needs_human_action",
+    "next_gate",
 )
 
-EXPECTED_AUTOMATIONS: Sequence[str] = (
+COMPACT_AUTOMATIONS: Sequence[str] = (
+    "daily-hitl-digest",
+    "run-on-approval",
+    "weekly-research-review",
+)
+
+LEGACY_AUTOMATIONS: Sequence[str] = (
     "nightly-health-check",
     "daily-code-delta",
     "daily-hitl-queue-build",
@@ -107,6 +121,23 @@ EXPECTED_SKILLS: Sequence[str] = (
     "triage-training-failure",
     "drift-audit",
     "repro-bundle",
+)
+
+REQUIRED_ACTIVE_SECTIONS: Sequence[str] = (
+    "# ACTIVE HITL Context Hub",
+    "## Active Experiments",
+    "## Current Gate Focus",
+    "## Next Human Actions",
+    "## Latest Failure (1 item)",
+    "## Today Top 3",
+)
+
+REQUIRED_INTERFACE_PHRASES: Sequence[str] = (
+    "실험 제안:",
+    "계획 승인:",
+    "실행 승인:",
+    "결과 정리:",
+    "머지 승인:",
 )
 
 
@@ -160,12 +191,23 @@ def validate_state_registry(path: Path) -> CheckResult:
     exp_ids: list[str] = [row["exp_id"] for row in rows if row["exp_id"]]
     duplicates = sorted({exp_id for exp_id in exp_ids if exp_ids.count(exp_id) > 1})
     unknown_states = sorted({row["state"] for row in rows if row["state"] and row["state"] not in HITL_STATES})
+    unknown_lanes = sorted({row["lane"] for row in rows if row["lane"] and row["lane"] not in ALLOWED_LANES})
 
     if duplicates:
         return CheckResult("state_registry_duplicate_exp_id", False, f"duplicates={duplicates}")
     if unknown_states:
         return CheckResult("state_registry_unknown_state", False, f"unknown_states={unknown_states}")
+    if unknown_lanes:
+        return CheckResult("state_registry_unknown_lane", False, f"unknown_lanes={unknown_lanes}")
     return CheckResult("state_registry_valid", True, f"rows={len(rows)}")
+
+
+def validate_text_sections(path: Path, required_markers: Sequence[str], name: str) -> CheckResult:
+    if not path.exists():
+        return CheckResult(name, False, f"missing_file={path}")
+    text = path.read_text(encoding="utf-8")
+    missing = [marker for marker in required_markers if marker not in text]
+    return CheckResult(name, not missing, f"missing={missing}" if missing else "sections_ok")
 
 
 def validate_transition_sequence(states: Sequence[str]) -> Tuple[bool, str]:
@@ -183,9 +225,40 @@ def validate_transition_sequence(states: Sequence[str]) -> Tuple[bool, str]:
     return True, "ok"
 
 
+def classify_lane(
+    baseline_included: bool,
+    estimated_gpu_hours: float,
+    estimated_cpu_hours: float,
+    external_share_target: bool,
+) -> str:
+    if baseline_included:
+        return "record"
+    if estimated_gpu_hours >= 1.0:
+        return "record"
+    if estimated_cpu_hours >= 4.0:
+        return "record"
+    if external_share_target:
+        return "record"
+    return "wip"
+
+
+def can_execute_run(lane: str, state: str) -> bool:
+    if lane == "wip":
+        return True
+    return state in {"RUN_APPROVED", "RUNNING"}
+
+
+def can_merge(state: str) -> bool:
+    return state in {"MERGE_APPROVED", "MERGED"}
+
+
 def run_toy_state_cases() -> list[CheckResult]:
     cases = [
-        ("case_happy_path", ["DRAFT", "PLAN_READY", "PLAN_APPROVED", "RUN_READY", "RUN_APPROVED", "RUNNING", "RESULT_READY", "MERGE_APPROVED", "MERGED"], True),
+        (
+            "case_happy_path",
+            ["DRAFT", "PLAN_READY", "PLAN_APPROVED", "RUN_READY", "RUN_APPROVED", "RUNNING", "RESULT_READY", "MERGE_APPROVED", "MERGED"],
+            True,
+        ),
         ("case_skip_plan_approval", ["DRAFT", "PLAN_READY", "RUN_READY"], False),
         ("case_skip_run_approval", ["DRAFT", "PLAN_READY", "PLAN_APPROVED", "RUN_READY", "RUNNING"], False),
         ("case_unknown_state", ["DRAFT", "PLAN_READY", "RUN_PLANET"], False),
@@ -199,6 +272,43 @@ def run_toy_state_cases() -> list[CheckResult]:
     return results
 
 
+def run_lane_policy_cases() -> list[CheckResult]:
+    results: list[CheckResult] = []
+    classify_cases = [
+        ("lane_baseline_record", (True, 0.0, 0.1, False), "record"),
+        ("lane_gpu_budget_record", (False, 1.0, 0.0, False), "record"),
+        ("lane_cpu_budget_record", (False, 0.0, 4.0, False), "record"),
+        ("lane_external_share_record", (False, 0.0, 0.0, True), "record"),
+        ("lane_fast_wip", (False, 0.2, 1.5, False), "wip"),
+    ]
+    for name, args, expected in classify_cases:
+        actual = classify_lane(*args)
+        results.append(CheckResult(name, actual == expected, f"expected={expected}, actual={actual}"))
+
+    results.append(
+        CheckResult(
+            "run_block_record_without_approval",
+            can_execute_run("record", "PLAN_APPROVED") is False,
+            "record lane should block execution before RUN_APPROVED",
+        )
+    )
+    results.append(
+        CheckResult(
+            "run_allow_wip_without_approval",
+            can_execute_run("wip", "DRAFT") is True,
+            "wip lane allows fast execution without approval",
+        )
+    )
+    results.append(
+        CheckResult(
+            "merge_requires_merge_approved",
+            can_merge("RUNNING") is False and can_merge("MERGE_APPROVED") is True,
+            "merge requires MERGE_APPROVED",
+        )
+    )
+    return results
+
+
 def run_toy_corner_cases() -> list[CheckResult]:
     results: list[CheckResult] = []
     with tempfile.TemporaryDirectory(prefix="hitl_validation_") as tmpdir:
@@ -206,9 +316,9 @@ def run_toy_corner_cases() -> list[CheckResult]:
 
         dup_state_file = tmp / "state_index_dup.csv"
         dup_state_file.write_text(
-            "exp_id,state,owner,updated_at,approved_by\n"
-            "EXP-1,DRAFT,alice,2026-03-01T10:00:00,alice\n"
-            "EXP-1,PLAN_READY,alice,2026-03-01T10:05:00,alice\n",
+            "exp_id,state,owner,updated_at,approved_by,lane,needs_human_action,next_gate\n"
+            "EXP-1,DRAFT,alice,2026-03-01T10:00:00,alice,record,yes,PLAN_APPROVED\n"
+            "EXP-1,PLAN_READY,alice,2026-03-01T10:05:00,alice,record,yes,PLAN_APPROVED\n",
             encoding="utf-8",
         )
         dup_result = validate_state_registry(dup_state_file)
@@ -241,25 +351,31 @@ def run_toy_corner_cases() -> list[CheckResult]:
     return results
 
 
-def validate_automations(automations_root: Path) -> list[CheckResult]:
+def validate_automations(automations_root: Path, automation_ids: Sequence[str], prefix: str) -> list[CheckResult]:
     results: list[CheckResult] = []
 
-    for automation_id in EXPECTED_AUTOMATIONS:
+    for automation_id in automation_ids:
         file_path = automations_root / automation_id / "automation.toml"
         if not file_path.exists():
-            results.append(CheckResult(f"automation_{automation_id}_exists", False, "missing_automation.toml"))
+            results.append(CheckResult(f"{prefix}_{automation_id}_exists", False, "missing_automation.toml"))
             continue
 
         data = tomllib.loads(file_path.read_text(encoding="utf-8"))
         status_ok = data.get("status") == "PAUSED"
-        results.append(CheckResult(f"automation_{automation_id}_paused", status_ok, f"status={data.get('status')}"))
+        results.append(CheckResult(f"{prefix}_{automation_id}_paused", status_ok, f"status={data.get('status')}"))
 
         cwd_list = data.get("cwds", [])
         cwd_ok = bool(cwd_list) and all(Path(path).exists() for path in cwd_list)
-        results.append(CheckResult(f"automation_{automation_id}_cwd_exists", cwd_ok, f"cwds={cwd_list}"))
+        results.append(CheckResult(f"{prefix}_{automation_id}_cwd_exists", cwd_ok, f"cwds={cwd_list}"))
 
         prompt_ok = bool(str(data.get("prompt", "")).strip())
-        results.append(CheckResult(f"automation_{automation_id}_prompt_nonempty", prompt_ok, "prompt_set" if prompt_ok else "prompt_empty"))
+        results.append(
+            CheckResult(
+                f"{prefix}_{automation_id}_prompt_nonempty",
+                prompt_ok,
+                "prompt_set" if prompt_ok else "prompt_empty",
+            )
+        )
 
     return results
 
@@ -319,7 +435,7 @@ def render_report(results: Sequence[CheckResult], report_path: Path) -> None:
     if failed:
         lines.append("- Validation failed. Review failed checks above.")
     else:
-        lines.append("- Validation succeeded. HITL workflow templates and controls are consistent.")
+        lines.append("- Validation succeeded. Compact HITL templates and controls are consistent.")
     lines.append("")
 
     report_path.parent.mkdir(parents=True, exist_ok=True)
@@ -361,14 +477,48 @@ def main() -> int:
     docs_hitl = project_root / "docs" / "hitl"
     checks: list[CheckResult] = []
 
-    checks.append(validate_required_yaml_keys(docs_hitl / "experiment_card.yaml", REQUIRED_EXPERIMENT_KEYS, "experiment_card_schema"))
-    checks.append(validate_required_yaml_keys(docs_hitl / "run_gate.yaml", REQUIRED_RUN_GATE_KEYS, "run_gate_schema"))
-    checks.append(validate_required_yaml_keys(docs_hitl / "result_card.yaml", REQUIRED_RESULT_KEYS, "result_card_schema"))
+    checks.append(
+        validate_required_yaml_keys(
+            docs_hitl / "experiment_card.yaml",
+            REQUIRED_EXPERIMENT_KEYS,
+            "experiment_card_schema",
+        )
+    )
+    checks.append(
+        validate_required_yaml_keys(
+            docs_hitl / "run_gate.yaml",
+            REQUIRED_RUN_GATE_KEYS,
+            "run_gate_schema",
+        )
+    )
+    checks.append(
+        validate_required_yaml_keys(
+            docs_hitl / "result_card.yaml",
+            REQUIRED_RESULT_KEYS,
+            "result_card_schema",
+        )
+    )
     checks.append(validate_state_registry(docs_hitl / "state_index.csv"))
+    checks.append(
+        validate_text_sections(
+            docs_hitl / "ACTIVE.md",
+            REQUIRED_ACTIVE_SECTIONS,
+            "active_hub_sections",
+        )
+    )
+    checks.append(
+        validate_text_sections(
+            docs_hitl / "INTERFACE.md",
+            REQUIRED_INTERFACE_PHRASES,
+            "interface_commands_present",
+        )
+    )
 
     checks.extend(validate_global_skills(args.skills_root.resolve()))
-    checks.extend(validate_automations(args.automations_root.resolve()))
+    checks.extend(validate_automations(args.automations_root.resolve(), COMPACT_AUTOMATIONS, "compact_automation"))
+    checks.extend(validate_automations(args.automations_root.resolve(), LEGACY_AUTOMATIONS, "legacy_automation"))
     checks.extend(run_toy_state_cases())
+    checks.extend(run_lane_policy_cases())
     checks.extend(run_toy_corner_cases())
 
     render_report(checks, report_path)
@@ -381,4 +531,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

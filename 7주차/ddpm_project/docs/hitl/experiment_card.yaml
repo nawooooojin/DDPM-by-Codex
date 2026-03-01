@@ -1,5 +1,8 @@
 # HITL experiment proposal card template
 exp_id: "EXP-YYYYMMDD-001"
+lane: "wip|record"
+promotion_source: "manual|agent"
+promotion_reason: ""
 hypothesis: ""
 model_changes:
   - ""

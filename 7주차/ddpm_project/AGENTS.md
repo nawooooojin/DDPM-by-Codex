@@ -10,10 +10,46 @@ This repository hosts two tracks:
 - Keep each change set small and reviewable.
 - Run milestone validation commands and stop/fix on failure.
 - Add new experiments via `configs/experiment/*.yaml`.
-- Follow HITL 3-gate workflow:
-  1. `PLAN_APPROVED` before code/config mutation for an experiment.
-  2. `RUN_APPROVED` before any run execution.
-  3. `MERGE_APPROVED` before branch integration.
+
+## Dual-Lane HITL Policy (Default)
+
+### 1) WIP lane (fast exploration)
+- Purpose: quick hypothesis checks, shape/debug iterations, rapid coding.
+- Card requirement: optional.
+- Gate requirement: exempt.
+- Allowed:
+  - immediate code/config edits
+  - immediate run execution
+- Restriction:
+  - WIP results are not official comparison artifacts until promoted.
+
+### 2) Record lane (official experiment)
+- Purpose: baseline comparison, reportable outcomes, shareable results.
+- Card requirement: mandatory.
+- Gate requirement: mandatory.
+- Required approvals:
+  1. `PLAN_APPROVED`
+  2. `RUN_APPROVED`
+  3. `MERGE_APPROVED`
+
+### 3) Branch integration rule
+- Merge to main branch always requires `MERGE_APPROVED` (lane-independent).
+
+## State / Card Ownership
+- Human gives approval intent only (Y/N semantics via command phrases).
+- Agent owns card creation/update, state transitions, and `docs/hitl/ACTIVE.md` sync.
+- Manual edits are allowed; latest synchronized agent state is treated as source of truth.
+
+## Human Command Interface
+- `실험 제안: <idea>`
+- `계획 승인: EXP-...`
+- `실행 승인: EXP-...`
+- `결과 정리: EXP-...`
+- `머지 승인: EXP-...`
+
+## Manual-First Flexibility Rule
+- Users can code/run first.
+- If later promoted to Record lane, agent backfills cards and state from git diff/log context.
 
 ## Architecture Rules
 - `src/` contains reusable package code only.
@@ -33,6 +69,14 @@ This repository hosts two tracks:
 
 ## Dependency Policy
 - Any new dependency requires explicit user confirmation.
+
+## Context Hygiene Policy
+- Default read set:
+  1. `AGENTS.md`
+  2. `docs/hitl/ACTIVE.md`
+  3. active experiment card (1 set)
+  4. expand to `docs/PLAN.md` / `docs/STATUS.md` only when needed
+- Keep at most 3 active experiments in `ACTIVE.md`.
 
 ## Durable Memory Policy
 - Maintain `docs/PROMPT.md`, `docs/PLAN.md`, `docs/IMPLEMENT.md`, `docs/STATUS.md`.

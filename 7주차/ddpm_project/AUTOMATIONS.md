@@ -1,51 +1,49 @@
-# Codex Automations Prompt Pack (HITL Standard)
+# Codex Automations Prompt Pack (HITL Compact Mode)
 
 Default policy:
 - All automations start in `PAUSED`.
 - Approval surface is Codex inbox.
-- No run execution unless state is `RUN_APPROVED`.
+- Record lane run execution requires `RUN_APPROVED`.
+- Inbox creation is suppressed unless actionable items exist.
 
-## 1) Nightly Health Check
-- Name: Nightly Health Check
-- Suggested schedule: Every day at 01:00
-- Prompt: Run lint/tests/sanity checks and write PASS/FAIL summary plus first failing cause to `reports/hitl/inbox/`.
+## Compact Set (Primary: 3 automations)
 
-## 2) Daily Code Delta
-- Name: Daily Code Delta
-- Suggested schedule: Every day at 18:00
-- Prompt: Summarize 24h code changes by directory, flag risky/untested changes, and output follow-up checks.
-
-## 3) Daily HITL Queue Build
-- Name: Daily HITL Queue Build
+## 1) Daily HITL Digest
+- Name: `daily-hitl-digest`
 - Suggested schedule: Every day at 09:00
-- Prompt: Draft PLAN_READY experiment cards from backlog hypotheses using `docs/hitl/experiment_card.yaml`.
+- Prompt:
+  - Aggregate lint/tests/sanity summary, 24h code delta, and latest failed-run triage into one report.
+  - Write output to `reports/hitl/daily.md`.
+  - Create inbox item only when actionable fixes or approvals are required.
 
-## 4) Run Gate Preflight
-- Name: Run Gate Preflight
-- Suggested schedule: Weekdays hourly
-- Prompt: For `PLAN_APPROVED` items, generate RUN_READY gate cards with command, budget, artifacts, rollback plan.
+## 2) Run On Approval
+- Name: `run-on-approval`
+- Suggested schedule: Event-driven / on-demand trigger
+- Prompt:
+  - Trigger only for `RUN_APPROVED` commands.
+  - Start the approved command, set state to `RUNNING`, and draft `RESULT_READY` summary on completion.
+  - Do not mutate unrelated files.
 
-## 5) Run Monitor
-- Name: Run Monitor
-- Suggested schedule: Every 2 hours
-- Prompt: Monitor RUNNING jobs and emit alerts/triage drafts without mutating code.
-
-## 6) Failed Run Triage
-- Name: Failed Run Triage
-- Suggested schedule: Every day at 11:00
-- Prompt: Classify most recent failure (data/model/config/runtime), create minimal repro command, suggest smallest safe fix.
-
-## 7) Weekly Experiment Digest
-- Name: Weekly Experiment Digest
+## 3) Weekly Research Review
+- Name: `weekly-research-review`
 - Suggested schedule: Every Monday at 09:00
-- Prompt: Update `reports/hitl/weekly.md` with metric trends, config deltas, cost signals, and prioritized next steps.
+- Prompt:
+  - Update `reports/hitl/weekly.md` with KPI trends, failure patterns, reproducibility gaps, and next-week priorities.
+  - Keep it to one-page summary and link detailed logs.
 
-## 8) Prompt Plan Drift Check
-- Name: Prompt Plan Drift Check
-- Suggested schedule: Weekdays at 10:00
-- Prompt: Compare `docs/PROMPT.md`/`docs/PLAN.md` vs code/tests/run state and report mismatches.
+## Legacy Templates (Preserved, PAUSED)
+These are retained for compatibility and can stay paused unless explicitly needed:
+- `nightly-health-check`
+- `daily-code-delta`
+- `daily-hitl-queue-build`
+- `run-gate-preflight`
+- `run-monitor`
+- `failed-run-triage`
+- `weekly-experiment-digest`
+- `prompt-plan-drift-check`
+- `repro-audit`
 
-## 9) Repro Audit
-- Name: Repro Audit
-- Suggested schedule: Every Friday at 16:00
-- Prompt: Audit top runs for reproducibility completeness (config, commit, checkpoint, data ref, rerun command).
+## Activation Guidance
+1. Start with `daily-hitl-digest` only.
+2. Enable `weekly-research-review` after 3-5 successful experiment cycles.
+3. Use `run-on-approval` when state transition discipline is stable.
