@@ -85,6 +85,7 @@ python -m pytest -q
 - Working agreements: `AGENTS.md`
 - Memory docs: `docs/PROMPT.md`, `docs/PLAN.md`, `docs/IMPLEMENT.md`, `docs/STATUS.md`
 - HITL schemas/state machine: `docs/hitl/*`
+- Detailed HITL operation guide: `README_HITL_AUTOMATION.md`
 - HITL report channels: `reports/hitl/inbox/`, `reports/hitl/daily.md`, `reports/hitl/weekly.md`
 - Repo skills: `.agents/skills/*`
 - Automation prompt set: `AUTOMATIONS.md`
