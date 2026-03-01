@@ -10,6 +10,10 @@ This repository hosts two tracks:
 - Keep each change set small and reviewable.
 - Run milestone validation commands and stop/fix on failure.
 - Add new experiments via `configs/experiment/*.yaml`.
+- Follow HITL 3-gate workflow:
+  1. `PLAN_APPROVED` before code/config mutation for an experiment.
+  2. `RUN_APPROVED` before any run execution.
+  3. `MERGE_APPROVED` before branch integration.
 
 ## Architecture Rules
 - `src/` contains reusable package code only.
@@ -32,3 +36,4 @@ This repository hosts two tracks:
 
 ## Durable Memory Policy
 - Maintain `docs/PROMPT.md`, `docs/PLAN.md`, `docs/IMPLEMENT.md`, `docs/STATUS.md`.
+- Maintain HITL contract files under `docs/hitl/` and report streams under `reports/hitl/`.

@@ -1,0 +1,13 @@
+# HITL run approval gate template
+exp_id: "EXP-YYYYMMDD-001"
+exact_command: "python scripts/train.py ..."
+cwd: "."
+max_duration: "04:00:00"
+gpu_budget:
+  max_gpu_count: 0
+  max_gpu_hours: 0
+artifacts_expected:
+  - "outputs/.../resolved_config.yaml"
+  - "outputs/.../checkpoints/last.pt"
+rollback_plan:
+  - ""

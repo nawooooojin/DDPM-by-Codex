@@ -1,0 +1,16 @@
+# HITL experiment proposal card template
+exp_id: "EXP-YYYYMMDD-001"
+hypothesis: ""
+model_changes:
+  - ""
+config_overrides:
+  - ""
+expected_signal:
+  primary_metric: ""
+  expected_direction: "increase|decrease"
+risk_level: "low|medium|high"
+compute_budget:
+  max_hours: 0
+  max_gpu_count: 0
+stop_conditions:
+  - ""

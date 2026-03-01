@@ -6,6 +6,9 @@
 3. Apply minimal reviewable diff.
 4. Run validation command(s).
 5. If failure: stop, fix, log in `docs/STATUS.md`, re-run.
+6. Respect HITL gates:
+   - no run before `RUN_APPROVED`,
+   - no merge/update reflection before `MERGE_APPROVED`.
 
 ## Update Discipline
 - Keep PLAN actionable and testable.

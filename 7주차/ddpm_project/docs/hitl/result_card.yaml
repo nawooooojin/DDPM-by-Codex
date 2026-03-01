@@ -1,0 +1,11 @@
+# HITL result summary template
+exp_id: "EXP-YYYYMMDD-001"
+status: "RESULT_READY|REJECTED|MERGED"
+best_metrics:
+  - name: ""
+    value: 0.0
+qualitative_notes:
+  - ""
+failure_class: "none|data|model|config|runtime"
+next_actions:
+  - ""

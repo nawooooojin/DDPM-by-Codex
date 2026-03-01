@@ -1,26 +1,51 @@
-# Codex Automations Prompt Pack
+# Codex Automations Prompt Pack (HITL Standard)
 
-## 1) Nightly Health
-- Name: Nightly Lint + Tests + Sanity
-- Suggested schedule: Every night at 1:00 AM local time
-- Prompt: Run `ruff check .`, `black --check .`, and `python -m pytest -q`; then run `$sanity-check` and summarize pass/fail, first failure root cause, and fix order.
+Default policy:
+- All automations start in `PAUSED`.
+- Approval surface is Codex inbox.
+- No run execution unless state is `RUN_APPROVED`.
 
-## 2) Weekly Experiment Digest
-- Name: Weekly Experiment Table Refresh
-- Suggested schedule: Every Monday at 9:00 AM local time
-- Prompt: Use `$summarize-results` to parse recent runs and refresh `reports/weekly.md` with run path, key overrides, and metrics.
+## 1) Nightly Health Check
+- Name: Nightly Health Check
+- Suggested schedule: Every day at 01:00
+- Prompt: Run lint/tests/sanity checks and write PASS/FAIL summary plus first failing cause to `reports/hitl/inbox/`.
 
-## 3) Daily Code Change Digest
-- Name: Daily Code Delta by Directory
-- Suggested schedule: Every day at 6:00 PM local time
-- Prompt: Summarize last 24h git changes grouped by `src/`, `configs/`, `scripts/`, `tests/`, `docs/`; highlight untested changes.
+## 2) Daily Code Delta
+- Name: Daily Code Delta
+- Suggested schedule: Every day at 18:00
+- Prompt: Summarize 24h code changes by directory, flag risky/untested changes, and output follow-up checks.
 
-## 4) On-Demand Failure Triage
-- Name: Triage Latest Failed Run
-- Suggested schedule: Manual / on-demand
-- Prompt: Inspect latest failed run under `outputs/`, classify root cause (data/model/config/runtime), and propose smallest safe patch.
+## 3) Daily HITL Queue Build
+- Name: Daily HITL Queue Build
+- Suggested schedule: Every day at 09:00
+- Prompt: Draft PLAN_READY experiment cards from backlog hypotheses using `docs/hitl/experiment_card.yaml`.
 
-## 5) Drift Check
-- Name: Prompt-Plan-Code Drift Check
-- Suggested schedule: Every weekday at 10:00 AM local time
-- Prompt: Compare `docs/PROMPT.md` and `docs/PLAN.md` against current code/tests and list mismatches with concrete update actions.
+## 4) Run Gate Preflight
+- Name: Run Gate Preflight
+- Suggested schedule: Weekdays hourly
+- Prompt: For `PLAN_APPROVED` items, generate RUN_READY gate cards with command, budget, artifacts, rollback plan.
+
+## 5) Run Monitor
+- Name: Run Monitor
+- Suggested schedule: Every 2 hours
+- Prompt: Monitor RUNNING jobs and emit alerts/triage drafts without mutating code.
+
+## 6) Failed Run Triage
+- Name: Failed Run Triage
+- Suggested schedule: Every day at 11:00
+- Prompt: Classify most recent failure (data/model/config/runtime), create minimal repro command, suggest smallest safe fix.
+
+## 7) Weekly Experiment Digest
+- Name: Weekly Experiment Digest
+- Suggested schedule: Every Monday at 09:00
+- Prompt: Update `reports/hitl/weekly.md` with metric trends, config deltas, cost signals, and prioritized next steps.
+
+## 8) Prompt Plan Drift Check
+- Name: Prompt Plan Drift Check
+- Suggested schedule: Weekdays at 10:00
+- Prompt: Compare `docs/PROMPT.md`/`docs/PLAN.md` vs code/tests/run state and report mismatches.
+
+## 9) Repro Audit
+- Name: Repro Audit
+- Suggested schedule: Every Friday at 16:00
+- Prompt: Audit top runs for reproducibility completeness (config, commit, checkpoint, data ref, rerun command).
