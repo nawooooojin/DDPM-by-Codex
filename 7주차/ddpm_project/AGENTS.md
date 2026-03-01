@@ -10,6 +10,10 @@ This repository hosts two tracks:
 - Keep each change set small and reviewable.
 - Run milestone validation commands and stop/fix on failure.
 - Add new experiments via `configs/experiment/*.yaml`.
+- Keep policy and experiment axes separate in Hydra:
+  - lane switch: `lane=wip|record`
+  - experiment switch: `experiment=<name>`
+  - avoid using `+experiment=...` for lane semantics.
 
 ## Dual-Lane HITL Policy (Default)
 
@@ -46,6 +50,12 @@ This repository hosts two tracks:
 - `실행 승인: EXP-...`
 - `결과 정리: EXP-...`
 - `머지 승인: EXP-...`
+
+## Hydra Switching Interface
+- Fast exploration:
+  - `python scripts/train.py lane=wip model.hidden_dim=32`
+- Official tracked experiment:
+  - `python scripts/train.py lane=record experiment=<name>`
 
 ## Manual-First Flexibility Rule
 - Users can code/run first.

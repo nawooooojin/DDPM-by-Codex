@@ -140,6 +140,14 @@ REQUIRED_INTERFACE_PHRASES: Sequence[str] = (
     "머지 승인:",
 )
 
+REQUIRED_LANE_KEYS: set[str] = {
+    "name",
+    "require_plan_approved",
+    "require_run_approved",
+    "require_merge_approved",
+    "notes",
+}
+
 
 @dataclass
 class CheckResult:
@@ -208,6 +216,17 @@ def validate_text_sections(path: Path, required_markers: Sequence[str], name: st
     text = path.read_text(encoding="utf-8")
     missing = [marker for marker in required_markers if marker not in text]
     return CheckResult(name, not missing, f"missing={missing}" if missing else "sections_ok")
+
+
+def validate_train_defaults_has_lane(path: Path) -> CheckResult:
+    if not path.exists():
+        return CheckResult("train_defaults_has_lane", False, f"missing_file={path}")
+    text = path.read_text(encoding="utf-8")
+    return CheckResult(
+        "train_defaults_has_lane",
+        "- lane:" in text,
+        "lane_default_present" if "- lane:" in text else "lane_default_missing",
+    )
 
 
 def validate_transition_sequence(states: Sequence[str]) -> Tuple[bool, str]:
@@ -513,6 +532,21 @@ def main() -> int:
             "interface_commands_present",
         )
     )
+    checks.append(
+        validate_required_yaml_keys(
+            project_root / "configs" / "lane" / "wip.yaml",
+            REQUIRED_LANE_KEYS,
+            "lane_wip_schema",
+        )
+    )
+    checks.append(
+        validate_required_yaml_keys(
+            project_root / "configs" / "lane" / "record.yaml",
+            REQUIRED_LANE_KEYS,
+            "lane_record_schema",
+        )
+    )
+    checks.append(validate_train_defaults_has_lane(project_root / "configs" / "train.yaml"))
 
     checks.extend(validate_global_skills(args.skills_root.resolve()))
     checks.extend(validate_automations(args.automations_root.resolve(), COMPACT_AUTOMATIONS, "compact_automation"))

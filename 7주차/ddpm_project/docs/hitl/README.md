@@ -4,6 +4,14 @@
 - `wip`: fast exploration. No gate requirement.
 - `record`: official experiment. 3-gate required.
 
+## Hydra switching
+- Lane and experiment are separate:
+  - `lane=wip|record`
+  - `experiment=<name>`
+- Examples:
+  - `python scripts/train.py lane=wip model.hidden_dim=32`
+  - `python scripts/train.py lane=record experiment=paper_repro`
+
 ## Canonical States (Record lane)
 - DRAFT
 - PLAN_READY

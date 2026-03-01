@@ -15,6 +15,15 @@ This compact edition keeps reproducibility for official experiments while restor
   - transition state
   - sync `docs/hitl/ACTIVE.md`
 
+## 2.1) Hydra switch convention
+- Treat lane and experiment as separate axes:
+  - lane: `lane=wip|record`
+  - experiment: `experiment=<name>`
+- Recommended commands:
+  - quick test: `python scripts/train.py lane=wip model.hidden_dim=32`
+  - official run: `python scripts/train.py lane=record experiment=<name>`
+- Avoid `+experiment=WIP` style for lane switching.
+
 ## 3) Gate scope
 - `wip` lane: gate-exempt for mutation/run.
 - `record` lane:

@@ -1,0 +1,8 @@
+# Official experiment lane (strict HITL gates).
+name: record
+require_plan_approved: true
+require_run_approved: true
+require_merge_approved: true
+notes:
+  - "Use for baseline comparison and externally shared results."
+  - "Cards and state transitions are mandatory."

@@ -15,6 +15,7 @@
   - dual lane (`wip` / `record`) 도입
   - 상태/카드 관리는 에이전트 위임
   - 자동화는 compact 3개를 기본으로, legacy 9개는 paused 보존
+  - Hydra lane switch 표준화: `lane=wip|record` (experiment 축과 분리)
 
 ## How To Run
 - DDPM: `python scripts/train.py`
@@ -54,3 +55,7 @@
     - compact 3 automations + legacy 9 automations presence/paused status
     - `ACTIVE.md` / `INTERFACE.md` section integrity
     - WIP/Record lane policy scenarios
+- Lane CLI standard update validation (2026-03-01):
+  - Added `configs/lane/wip.yaml`, `configs/lane/record.yaml`.
+  - Added `lane: wip` default in `configs/train.yaml`.
+  - `conda run --no-capture-output -n py311 python scripts/hitl_validate_workflow.py` -> pass (`81/81`).

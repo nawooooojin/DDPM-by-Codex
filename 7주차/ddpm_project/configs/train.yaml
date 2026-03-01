@@ -5,8 +5,10 @@ defaults:
   - sampler: ddpm
   - optimizer: adam
   - runtime: default
+  - lane: wip
   - logging: wandb
   - callbacks: default
+  - optional experiment: null
   - _self_
 
 seed: 42

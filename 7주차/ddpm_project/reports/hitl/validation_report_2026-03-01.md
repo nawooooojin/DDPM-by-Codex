@@ -1,9 +1,9 @@
 # HITL Workflow Validation Report
 
-- Generated at: `2026-03-01T16:43:35`
+- Generated at: `2026-03-01T16:49:01`
 - Python: `3.11.14`
-- Total checks: `78`
-- Passed: `78`
+- Total checks: `81`
+- Passed: `81`
 - Failed: `0`
 
 ## Check Results
@@ -16,6 +16,9 @@
 | state_registry_valid | PASS | rows=0 |
 | active_hub_sections | PASS | sections_ok |
 | interface_commands_present | PASS | sections_ok |
+| lane_wip_schema | PASS | keys_ok=['name', 'notes', 'require_merge_approved', 'require_plan_approved', 'require_run_approved'] |
+| lane_record_schema | PASS | keys_ok=['name', 'notes', 'require_merge_approved', 'require_plan_approved', 'require_run_approved'] |
+| train_defaults_has_lane | PASS | lane_default_present |
 | skill_bootstrap-hydra-lightning-research_files_exist | PASS | path=/Users/woojinna/.codex/skills/bootstrap-hydra-lightning-research |
 | skill_bootstrap-hydra-lightning-research_quick_validate | PASS | Skill is valid! |
 | skill_hitl-experiment-design_files_exist | PASS | path=/Users/woojinna/.codex/skills/hitl-experiment-design |

@@ -25,6 +25,12 @@ Use `record` lane if any is true:
 
 Otherwise use `wip` lane.
 
+## Hydra CLI mapping
+- `lane=wip` for exploration
+- `lane=record` for official tracked run
+- `experiment=<name>` for experiment content override
+- Keep lane and experiment independent (do not encode lane into experiment name).
+
 ## WIP -> Record Promotion
 When user requests promotion:
 1. Agent backfills card fields from git diff/log context.

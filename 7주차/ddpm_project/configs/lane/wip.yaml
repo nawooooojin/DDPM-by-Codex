@@ -1,0 +1,8 @@
+# Fast exploration lane (gate-exempt).
+name: wip
+require_plan_approved: false
+require_run_approved: false
+require_merge_approved: true
+notes:
+  - "Use for quick probes and iterative debugging."
+  - "Promotion to record lane is required for official reporting."

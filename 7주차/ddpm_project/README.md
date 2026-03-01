@@ -71,14 +71,21 @@ python scripts/toy_report.py
 
 Create `configs/experiment/<name>.yaml` with `# @package _global_` and override required fields only.
 
+Lane switch is independent from experiment override:
+- `lane=wip`: fast exploration
+- `lane=record`: official tracked run
+
 Run:
 
 ```bash
 # DDPM base
-python scripts/train.py experiment=<name>
+python scripts/train.py lane=record experiment=<name>
 
 # Toy base
-python scripts/toy_train.py experiment=<name>
+python scripts/toy_train.py lane=record experiment=<name>
+
+# Fast WIP probe
+python scripts/train.py lane=wip model.hidden_dim=32
 ```
 
 ## 5) Quality Gates
