@@ -1,0 +1,10 @@
+_target_: src.data.toy_datamodule.ToyClassificationDataModule
+batch_size: 64
+num_workers: 0
+input_dim: 20
+num_classes: 4
+train_size: 1024
+val_size: 256
+test_size: 256
+noise_std: 0.7
+seed: ${seed}

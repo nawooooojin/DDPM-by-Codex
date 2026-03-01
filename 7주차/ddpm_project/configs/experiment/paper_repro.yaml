@@ -1,0 +1,13 @@
+# @package _global_
+tags: ["paper_repro", "locked_seed"]
+seed: 123
+
+trainer:
+  max_epochs: 10
+
+data:
+  batch_size: 128
+
+model:
+  lr: 0.0007
+  weight_decay: 0.0001

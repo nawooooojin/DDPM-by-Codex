@@ -1,0 +1,31 @@
+defaults:
+  - model: toy_mlp
+  - data: toy_classification
+  - trainer: cpu
+  - callbacks: toy_default
+  - _self_
+  - experiment: null
+
+project_name: toy_research_baseline
+seed: 42
+deterministic_algorithms: false
+ckpt_path: null
+run_test_after_fit: true
+tags: ["baseline", "toy"]
+
+sanity:
+  output_report_path: reports/latest.md
+  initial_loss_tolerance: 1.0
+  overfit:
+    max_epochs: 120
+    target_train_loss: 0.05
+
+report:
+  n_latest: 5
+  output_path: reports/latest.md
+
+hydra:
+  run:
+    dir: outputs/${now:%Y-%m-%d}/${now:%H-%M-%S}
+  job:
+    chdir: false

@@ -1,0 +1,28 @@
+[forbidden]
+commands = [
+  "rm -rf /",
+  "mkfs",
+  "dd if=/dev/zero",
+  "cat ~/.ssh/id_rsa",
+  "cat ~/.aws/credentials",
+  "mass network scan",
+]
+
+[prompt]
+commands = [
+  "pip install",
+  "poetry add",
+  "git push",
+  "bulk delete files",
+]
+
+[allow]
+commands = [
+  "git status",
+  "git diff",
+  "python -m pytest",
+  "ruff check .",
+  "black --check .",
+  "python scripts/train.py",
+  "python scripts/toy_sanity_check.py",
+]

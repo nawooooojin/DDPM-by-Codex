@@ -1,0 +1,13 @@
+# @package _global_
+tags: ["ablation", "hidden_dim_32"]
+
+model:
+  net:
+    hidden_dim: 32
+  lr: 0.002
+
+data:
+  noise_std: 1.0
+
+trainer:
+  max_epochs: 6

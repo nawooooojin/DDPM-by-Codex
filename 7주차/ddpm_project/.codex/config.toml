@@ -1,0 +1,8 @@
+model = "gpt-5-codex"
+project_doc_fallback_filenames = [
+  "AGENTS.md",
+  "README.md",
+  "docs/PROMPT.md",
+  "docs/PLAN.md",
+  "docs/STATUS.md",
+]

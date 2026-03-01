@@ -1,75 +1,95 @@
-# DDPM Study Project (Week 7)
+# DDPM Research Artifact (Hydra)
 
-Pure PyTorch + Hydra + WandB implementation for DDPM training and DDPM/DDIM comparison on CIFAR-10.
+This repo now includes:
+- DDPM CIFAR-10 training/evaluation pipeline (existing)
+- Toy Lightning pipeline for reproducibility/sanity protocol (new)
+- Durable project memory and repo-scoped Codex skills (new)
 
-## 1) Environment setup
+## 1) Install
 
 ```bash
 cd "7주차/ddpm_project"
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
+# Optional modern setup
+pip install -e .
+pip install -e .[dev]
 ```
 
-## 2) Sanity checks
-
-The project includes custom replacements for Lightning sanity features:
-
-1. Theoretical Loss Check: printed at training step 1.
-2. Overfit One Batch:
-
-```bash
-python scripts/train.py runtime.overfit_one_batch=true runtime.total_steps=1000 runtime.sample_every=200 logging.use_wandb=false
-```
-
-3. Fast Dev Run:
-
-```bash
-python scripts/train.py runtime.fast_dev_run=true logging.use_wandb=false
-```
-
-## 3) Train
+## 2) DDPM Train/Eval (existing)
 
 ```bash
 python scripts/train.py logging.use_wandb=true
-```
-
-Sampler switch is Hydra-only:
-
-```bash
-python scripts/train.py sampler=ddpm
-python scripts/train.py sampler=ddim
-```
-
-## 3-1) M1 Pro quick preset (recommended)
-
-Use smaller model, fewer diffusion steps, and MPS device:
-
-```bash
-python scripts/train.py model=unet_m1_small data=cifar10_m1 diffusion=ddpm_m1 runtime=m1_quick logging.use_wandb=false
-```
-
-For faster DDIM visual comparison on M1:
-
-```bash
-python scripts/eval.py model=unet_m1_small diffusion=ddpm_m1 sampler=ddim_m1 runtime=m1_quick runtime.checkpoint_path=/absolute/path/to/last.pt logging.use_wandb=false
-```
-
-## 4) Evaluate from checkpoint
-
-```bash
 python scripts/eval.py runtime.checkpoint_path=/absolute/path/to/last.pt logging.use_wandb=false
 ```
 
-## 5) Expected outputs
+DDPM quick checks:
 
-Run artifacts are stored under Hydra run directory:
+```bash
+python scripts/train.py runtime.fast_dev_run=true logging.use_wandb=false
+python scripts/train.py runtime.overfit_one_batch=true runtime.total_steps=1000 logging.use_wandb=false
+```
 
-- `checkpoints/step_*.pt`, `checkpoints/last.pt`
-- `figures/noise_schedule_curves.png`
-- `figures/forward_noising_grid.png`
-- `figures/reverse_trajectory_ddpm.png`
-- `figures/reverse_trajectory_ddim.png`
-- `figures/ddpm_vs_ddim_samples.png`
-- `figures/train_loss_curve.png`
-- `resolved_config.yaml`, `run_metadata.txt`
+## 3) Toy Reproducibility Pipeline (new)
+
+Train:
+
+```bash
+python scripts/toy_train.py
+```
+
+Fast smoke:
+
+```bash
+python scripts/toy_train.py trainer.fast_dev_run=true
+```
+
+Sanity checks (initial loss + overfit one batch + fast_dev_run):
+
+```bash
+python scripts/toy_sanity_check.py
+```
+
+Predict/report:
+
+```bash
+python scripts/toy_predict.py
+python scripts/toy_report.py
+```
+
+## 4) Add New Experiment
+
+Create `configs/experiment/<name>.yaml` with `# @package _global_` and override required fields only.
+
+Run:
+
+```bash
+# DDPM base
+python scripts/train.py experiment=<name>
+
+# Toy base
+python scripts/toy_train.py experiment=<name>
+```
+
+## 5) Quality Gates
+
+```bash
+ruff check .
+black --check .
+python -m pytest -q
+```
+
+## 6) Durable Memory / Agent Assets
+
+- Working agreements: `AGENTS.md`
+- Memory docs: `docs/PROMPT.md`, `docs/PLAN.md`, `docs/IMPLEMENT.md`, `docs/STATUS.md`
+- Repo skills: `.agents/skills/*`
+- Automation prompt set: `AUTOMATIONS.md`
+- Safety config: `.codex/config.toml`, `codex/rules/default.rules`
+
+## 7) Output Locations
+
+- DDPM runs: `outputs/hydra/...`
+- Toy runs: `outputs/YYYY-MM-DD/HH-MM-SS/`
+- Reports: `reports/`

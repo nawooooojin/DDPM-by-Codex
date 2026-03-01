@@ -1,7 +1,26 @@
+# Runtime artifacts
 outputs/
 wandb/
-data/
+
+# Data (keep local guidance only)
+data/*
+!data/README.md
+
+# Python
 __pycache__/
-*.pyc
+*.py[cod]
+*.so
+
+# Environments
+.venv/
+venv/
+
+# Tool caches
 .pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# OS/editor
 .DS_Store
+.idea/
+.vscode/
