@@ -5,6 +5,13 @@ This repo now includes:
 - Toy Lightning pipeline for reproducibility/sanity protocol (new)
 - Durable project memory and repo-scoped Codex skills (new)
 
+## 0) Workflow First (read this before running)
+
+If you are operating this repo as a research workflow, read these first:
+1. `AGENTS.md` (working agreements)
+2. `README_HITL_AUTOMATION.md` (daily operating guide)
+3. `docs/hitl/ACTIVE.md` (current state and next approvals)
+
 ## 1) Install
 
 ```bash
@@ -74,6 +81,10 @@ Create `configs/experiment/<name>.yaml` with `# @package _global_` and override 
 Lane switch is independent from experiment override:
 - `lane=wip`: fast exploration
 - `lane=record`: official tracked run
+
+Operational rule:
+- Use `lane=wip` for rapid probing.
+- Promote to `lane=record` before baseline comparison, external sharing, or costly runs.
 
 Run:
 
